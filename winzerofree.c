@@ -62,7 +62,7 @@ static void clear_compression_flag(HANDLE hFile) {
 
 static long long cwd_free_space() {
 	DWORD SectorsPerCluster, BytesPerSector, NumberOfFreeClusters, TotalNumberOfClusters;
-	if (!GetDiskFreeSpace(NULL, &SectorsPerCluster, &BytesPerSector, &NumberOfFreeClusters, &TotalNumberOfClusters)) {
+	if (!GetDiskFreeSpace(_T("."), &SectorsPerCluster, &BytesPerSector, &NumberOfFreeClusters, &TotalNumberOfClusters)) {
 		pWin32Error(ERR, "GetDiskFreeSpace() failed");
 		return 0;
 	}
