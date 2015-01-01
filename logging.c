@@ -1,7 +1,14 @@
 #include "mylogging.h"
 #include <stdio.h>
+#include <errno.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdlib.h>
+
+#ifdef _MSC_VER
 #include <windows.h>
 #include <tchar.h>
+#endif
 
 #include "mylastheader.h"
 
@@ -26,8 +33,7 @@ static char *cleanstr(char *s)
 	return s;
 }
 
-
-static void __myprog_log(int level, char mode, DWORD eNum, const char* fmt, va_list args)
+static void __myprog_log(int level, char mode, int eNum, const char* fmt, va_list args)
 {
 	char emsg[1024];
 	char *pend = emsg + sizeof(emsg);
@@ -44,13 +50,19 @@ static void __myprog_log(int level, char mode, DWORD eNum, const char* fmt, va_l
 			if (u >= count) break;
 			count -= u;
 
-			if (mode == 'w') {
+			if (mode == 's') {
+				u = (unsigned)_snprintf(pend - count, count, "%s", strerror(eNum));
+			}
+#ifdef WIN32
+			else if (mode == 'w') {
 				u = FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 																	NULL, eNum,
 																	MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
 																	pend - count, count, NULL );
-			} else if (mode == 's') {
-				u = (unsigned)_snprintf(pend - count, count, "%s", strerror(eNum));
+			}
+#endif
+			else {
+				abort();
 			}
 		}
 	} while(0);
@@ -76,6 +88,7 @@ void myprog_pSysError(int lvl, char const *fmt, ...)
 	va_end(args);
 }
 
+#ifdef WIN32
 void myprog_pWin32Error(int lvl, char const *fmt, ...)
 {
 	va_list args;
@@ -85,6 +98,7 @@ void myprog_pWin32Error(int lvl, char const *fmt, ...)
 	__myprog_log(lvl, 'w', eNum, fmt, args);
 	va_end(args);
 }
+#endif
 
 void myprog_log(int lvl, char const *fmt, ...)
 {
