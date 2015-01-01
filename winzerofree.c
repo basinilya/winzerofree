@@ -40,7 +40,7 @@ ennd:
 	return rc;
 }
 
-static char human_size(double *pSize) {
+static char human_size1(double *pSize) {
 	static const char units[] = "BKMGT";
 	const char *unit = units;
 
@@ -50,6 +50,22 @@ static char human_size(double *pSize) {
 	}
 	return *unit;
 }
+
+#define FMT_JUST_BYTES "%lld bytes"
+
+static char *human_size2(char buf[100], long long llsize) {
+	double size = llsize;
+	char c = human_size1(&size);
+	if (c == 'B') {
+		sprintf(buf, FMT_JUST_BYTES, llsize);
+	}
+	else {
+		sprintf(buf, FMT_JUST_BYTES "(%.1f%ciB)", llsize, size, c);
+	}
+	return buf;
+}
+
+#define HUMAN_SIZE(llsize) human_size2(humansizebuf, llsize)
 
 static void clear_compression_flag(HANDLE hFile) {
 	static USHORT nocompress = COMPRESSION_FORMAT_NONE;
@@ -135,7 +151,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	TCHAR extrafile[MAX_PATH];
 	int n_extrafile = 2, needmorefiles;
 
-	double humansize;
+	char humansizebuf[100];
 
 	HANDLE hFile;
 
@@ -186,8 +202,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		freespace = cwd_free_space();
 
-		humansize = (double)freespace;
-		log(INFO, "free space: %lld bytes (%.1f%c)", freespace, humansize, human_size(&humansize));
+		log(INFO, "free space: %s", HUMAN_SIZE(freespace));
 
 		// leave untouched at most 10Mb, at least 10 percent
 		data.filesize.QuadPart = freespace;
@@ -239,8 +254,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		SetFilePointerEx(hFile, zeropos, NULL, FILE_BEGIN);
 
-		humansize = (double)data.filesize.QuadPart;
-		log(INFO, "file created: %lld bytes (%.1f%c): " FMT_S, data.filesize.QuadPart, humansize, human_size(&humansize), filename);
+		log(INFO, "file created: %s: " FMT_S, HUMAN_SIZE(data.filesize.QuadPart), filename);
 		log(INFO, "start rewriting non-zero blocks");
 
 		data.curfilepos = 0;
@@ -281,8 +295,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		putc('\n', out);
 		fflush(out);
 
-		humansize = (double)byteswrote;
-		log(INFO, "wrote: %lld bytes (%.1f%c)", byteswrote, humansize, human_size(&humansize));
+		log(INFO, "wrote: %s", HUMAN_SIZE(byteswrote));
 
 		if (!needmorefiles)
 			break;
