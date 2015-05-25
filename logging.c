@@ -8,6 +8,8 @@
 #ifdef _MSC_VER
 #include <windows.h>
 #include <tchar.h>
+#undef snprintf
+#define snprintf _snprintf
 #endif
 
 #include "mylastheader.h"
@@ -41,17 +43,17 @@ static void __myprog_log(int level, char mode, int eNum, const char* fmt, va_lis
 	unsigned u;
 
 	do {
-		u = (unsigned)_vsnprintf(pend - count, count, fmt, args);
+		u = (unsigned)vsnprintf(pend - count, count, fmt, args);
 		if (u >= count) break;
 		count -= u;
 
 		if (mode != 'm') {
-			u = (unsigned)_snprintf(pend - count, count, ": 0x%08x (%d): ", eNum, eNum);
+			u = (unsigned)snprintf(pend - count, count, ": 0x%08x (%d): ", eNum, eNum);
 			if (u >= count) break;
 			count -= u;
 
 			if (mode == 's') {
-				u = (unsigned)_snprintf(pend - count, count, "%s", strerror(eNum));
+				u = (unsigned)snprintf(pend - count, count, "%s", strerror(eNum));
 			}
 #ifdef WIN32
 			else if (mode == 'w') {
