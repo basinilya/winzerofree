@@ -155,7 +155,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	HANDLE hFile;
 
-	block_t buf[8192 / sizeof(block_t)];
+	block_t buf[10*1024*1024 / sizeof(block_t)];
 
 	zerofree_data_t data;
 
