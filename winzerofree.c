@@ -178,7 +178,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	// chdir to file's directory
 	sz = dirname_len(filename);
 	if (sz != 0) {
-		filename[sz - 1] = '\0';
+		filename[sz] = '\0'; /* keep last slash (for "/") */
 		if (!SetCurrentDirectory(filename)) {
 			pWin32Error(ERR, "SetCurrentDirectory('" FMT_S "') failed: ", filename);
 			return 1;
